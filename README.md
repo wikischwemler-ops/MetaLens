@@ -9,6 +9,7 @@ MetaLens is a Windows desktop prototype for inspecting file-system information a
 - Preview and explicitly confirm changes to creation, last-access, and last-write times, plus the read-only attribute.
 - Keep file contents unchanged. Embedded metadata such as EXIF, PDF properties, and Office document properties is not yet read or edited.
 - Treat unrecognized file formats as unknown rather than inferring support from the extension.
+- Use the MetaLens icon in both the Windows executable and application window/taskbar.
 
 Timestamp and attribute availability and behavior depend on the file system and the user's permissions. If a save fails, MetaLens attempts to restore the original metadata and reports when restoration also fails.
 
@@ -18,6 +19,12 @@ Requires the .NET 10 SDK and Windows Desktop Runtime.
 
 ```powershell
 dotnet run --project src\MetaLens.Desktop
+```
+
+Regenerate the Windows icon from its vector drawing source with:
+
+```powershell
+dotnet run --project tools\MetaLens.IconGenerator -- src\MetaLens.Desktop\Assets\MetaLens.ico
 ```
 
 ## Tests

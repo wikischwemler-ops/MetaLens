@@ -1,0 +1,18 @@
+{
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Generate MetaLens icon",
+            "type": "shell",
+            "command": "dotnet",
+            "args": [
+                "run",
+                "--project",
+                "tools\\MetaLens.IconGenerator",
+                "--",
+                "src\\MetaLens.Desktop\\Assets\\MetaLens.ico"
+            ],
+            "problemMatcher": []
+        }
+    ]
+}

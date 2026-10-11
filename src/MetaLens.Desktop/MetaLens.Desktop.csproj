@@ -1,6 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
 
   <ItemGroup>
+    <Resource Include="Assets\MetaLens.ico" />
+  </ItemGroup>
+
+  <ItemGroup>
     <ProjectReference Include="..\MetaLens.Core\MetaLens.Core.csproj" />
   </ItemGroup>
 
@@ -10,6 +14,7 @@
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UseWPF>true</UseWPF>
+    <ApplicationIcon>Assets\MetaLens.ico</ApplicationIcon>
   </PropertyGroup>
 
 </Project>

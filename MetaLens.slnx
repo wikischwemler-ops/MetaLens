@@ -3,6 +3,9 @@
     <Project Path="src/MetaLens.Core/MetaLens.Core.csproj" />
     <Project Path="src/MetaLens.Desktop/MetaLens.Desktop.csproj" />
   </Folder>
+  <Folder Name="/tools/">
+    <Project Path="tools/MetaLens.IconGenerator/MetaLens.IconGenerator.csproj" />
+  </Folder>
   <Folder Name="/tests/">
     <Project Path="tests/MetaLens.Core.Tests/MetaLens.Core.Tests.csproj" />
   </Folder>
