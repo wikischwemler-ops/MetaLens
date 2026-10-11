@@ -42,7 +42,15 @@ MetaLens ist ein Dateiinformations-Tool, das Dateien unabhängig von ihrem Forma
 - Garantie, jedes proprietäre Format vollständig zu verstehen oder zu bearbeiten.
 - Beliebiges Ändern von Bytes unbekannter Formate.
 - Umgehen von Betriebssystem-Berechtigungen oder Dateischutz.
-- Festlegung auf ein bestimmtes Betriebssystem, UI-Framework oder Programmiersprache; diese Entscheidungen sind noch offen.
+- Änderung eingebetteter, formatspezifischer Metadaten, bevor dafür ein sicherer Format-Provider implementiert und getestet ist.
+
+## Umsetzungsumfang Version 0.1
+
+- Native Windows-Desktop-Anwendung mit C# und .NET 10.
+- Beliebige Dateien auswählen oder per Drag-and-drop öffnen und allgemeine Dateisystem-Informationen anzeigen.
+- Typische Dateiformate anhand weniger Bytes ihrer Dateisignatur erkennen; unbekannte Formate als unbekannt kennzeichnen.
+- Erstellungs-, Änderungs- und Zugriffszeitstempel sowie das Nur-Lese-Attribut nach Vorschau und Bestätigung bearbeiten.
+- Dateiinhalt bleibt unverändert. Eingebettete Metadaten werden in dieser Version ausdrücklich noch nicht gelesen oder geändert.
 
 ## Erfolgskriterien
 

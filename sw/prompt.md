@@ -15,8 +15,8 @@ Du hilfst mir, **MetaLens** zu entwickeln: ein Tool, das jede auswählbare Datei
 ## Arbeitsweise
 
 1. Untersuche zuerst das vorhandene Projekt, seine Konventionen, Abhängigkeiten und Tests.
-2. Stelle die noch offenen Produktentscheidungen nicht als bereits beschlossen dar. Insbesondere sind Zielplattform, Technologie und genaue Formate für die erste Version noch offen.
-3. Wenn eine dieser Entscheidungen für die Umsetzung zwingend nötig ist, frage zuerst gezielt nach. Ansonsten mache einen kleinen, rückgängig zu machenden Vorschlag und kennzeichne die Annahme.
+2. Die erste Version ist als Windows-Desktop-App mit C#/.NET 10 festgelegt. Weitere Plattformen und die konkreten formatspezifischen Metadaten-Provider sind noch offen.
+3. Wenn eine noch offene Entscheidung für die Umsetzung zwingend nötig ist, frage zuerst gezielt nach. Ansonsten mache einen kleinen, rückgängig zu machenden Vorschlag und kennzeichne die Annahme.
 4. Implementiere in kleinen, zusammenhängenden Änderungen und integriere die Lösung in die vorhandene Architektur.
 5. Ergänze passende Tests für allgemeine Datei-Informationen, Format-Erkennung, Metadatenbearbeitung und fehlgeschlagene Speichervorgänge.
 6. Führe die kleinsten passenden Tests, Linter oder Builds aus und berichte genau, was erfolgreich war und was nicht.

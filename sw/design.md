@@ -4,6 +4,12 @@
 
 **MetaLens** — ein Dateiinformations- und Metadaten-Editor.
 
+## Umsetzungsannahmen für Version 0.1
+
+- Ziel ist zunächst Windows als Desktop-Plattform, umgesetzt mit C# und .NET 10.
+- Die erste lauffähige Version unterstützt allgemeine Dateisystem-Informationen für beliebige auswählbare Dateien. Sie kann Zeitstempel und das Nur-Lese-Attribut nach Bestätigung ändern.
+- Signaturerkennung dient nur zur Orientierung. Ein Format gilt nicht als inhaltlich unterstützt, solange kein getesteter Metadaten-Provider vorhanden ist. Die erste Version bearbeitet keine eingebetteten Metadaten.
+
 ## Leitidee
 
 Die Anwendung behandelt jede Datei zunächst als Datei und ergänzt dieses gemeinsame Fundament durch optionale, formatspezifische Unterstützung. Ein allgemeiner Datei-Inspektor stellt deshalb stets den Einstieg dar; Format-Plugins liefern zusätzliche Informationen und Bearbeitungsmöglichkeiten, wenn sie das Format zuverlässig erkennen.
