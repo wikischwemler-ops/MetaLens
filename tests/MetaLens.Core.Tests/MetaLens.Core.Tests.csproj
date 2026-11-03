@@ -22,4 +22,17 @@
     <ProjectReference Include="..\..\src\MetaLens.Core\MetaLens.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <None Include="..\..\src\MetaLens.Desktop\Assets\MetaLens.ico"
+          Link="Assets\MetaLens.ico"
+          CopyToOutputDirectory="PreserveNewest" />
+    <None Include="Assets\ExifFixture.jpg" CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\tools\ExifTool\exiftool.exe"
+             Link="Tools\ExifTool\exiftool.exe"
+             CopyToOutputDirectory="PreserveNewest" />
+    <Content Include="..\..\tools\ExifTool\exiftool_files\**\*"
+             Link="Tools\ExifTool\exiftool_files\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest" />
+  </ItemGroup>
+
 </Project>
