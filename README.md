@@ -10,6 +10,7 @@ MetaLens is a Windows desktop prototype for inspecting file-system information a
 - Rename files within the same folder and edit creation, last-access, and last-write times, plus read-only, hidden, and system attributes.
 - Find the editing controls immediately below the selected-file card, before the long metadata inventory.
 - Read EXIF, IPTC, and XMP entries from supported images. On JPEG and TIFF images, edit selected EXIF, IPTC, and XMP descriptive fields. Multi-value fields use `; ` as a separator; other image metadata values are shown read-only.
+- Recognize binary and ASCII STL files. **Clean all metadata** zeroes the binary 80-byte header (or strips the `solid`/`endsolid` names), removes the `Zone.Identifier` download marker, and sets all file times to 2000-01-01 00:00:00 local time. Geometry is not changed; the cleaned copy is verified before it replaces the original.
 - Embedded metadata in PDF and Office files is not yet supported.
 - Treat unrecognized file formats as unknown rather than inferring support from the extension.
 - Use the MetaLens icon in both the Windows executable and application window/taskbar.

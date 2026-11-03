@@ -54,6 +54,8 @@ MetaLens ist ein Dateiinformations-Tool, das Dateien unabhängig von ihrem Forma
 - Ausgewählte EXIF-, IPTC- und XMP-Felder sind für JPEG/TIFF bearbeitbar. Alle übrigen Bildmetadaten und Formate werden als nicht bearbeitbar ausgewiesen.
 - Eingebettete Metadaten werden mit ExifTool in einer temporären Kopie geändert, erneut gelesen und geprüft; erst danach wird die Quelldatei ersetzt.
 - Eingebettete Metadaten in PDF- und Office-Dateien werden in dieser Version noch nicht unterstützt.
+- STL-Dateien (binär und ASCII) werden erkannt. „Clean all metadata“ entfernt nach Bestätigung alle Metadaten ohne Benutzernamen: Der 80-Byte-Header binärer STL-Dateien wird mit Nullen gefüllt, die Namen hinter `solid`/`endsolid` bei ASCII-STL werden entfernt, der Download-Vermerk `Zone.Identifier` wird gelöscht und Erstellungs-, Änderungs- und Zugriffszeit werden auf 2000-01-01 00:00:00 (Ortszeit) gesetzt. Die Geometrie bleibt unverändert; die bereinigte Kopie wird vor dem Ersetzen geprüft. Der NTFS-Besitzer der Datei wird nicht geändert.
+
 ## Metadatenkatalog
 
 Die Oberfläche listet alle 25 angeforderten Kategorien. Für jedes Feld muss erkennbar sein, ob ein Wert von Windows vorliegt, formatspezifische Unterstützung fehlt, der Wert nur lesbar ist oder eine Bearbeitung angeboten wird. „Nicht geprüft“ darf nicht als „nicht vorhanden“ dargestellt werden. Änderungen an Besitzer, ACL, ADS, eingebetteten Eigenschaften und anwendungsverwalteten IDs benötigen jeweils eine konkrete Implementierung und Berechtigung; Windows-Sicherheitsbeschränkungen werden nicht umgangen.

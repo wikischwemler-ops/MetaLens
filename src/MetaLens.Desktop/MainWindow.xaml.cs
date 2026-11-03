@@ -17,6 +17,7 @@ public partial class MainWindow : Window
 
     private readonly FileMetadataService _metadataService = new();
     private readonly ImageMetadataService _imageMetadataService = new();
+    private readonly StlMetadataService _stlMetadataService = new();
     private FileMetadataSnapshot? _currentFile;
     private ObservableCollection<ImageMetadataRow> _imageMetadataRows = [];
 
@@ -174,6 +175,50 @@ public partial class MainWindow : Window
         }
     }
 
+    private void OnCleanStlMetadataClick(object sender, RoutedEventArgs e)
+    {
+        if (_currentFile is null)
+        {
+            return;
+        }
+
+        if (MessageBox.Show(
+                this,
+                $"Clean all metadata of {_currentFile.FileName}?\n\n"
+                + "- Binary header or ASCII solid names are emptied\n"
+                + "- Zone.Identifier download marker is removed\n"
+                + $"- Created, last modified, and last accessed are set to {FormatTime(StlMetadataService.NeutralTimestamp)}\n\n"
+                + "The geometry is not changed. This cannot be undone.",
+                "Clean STL metadata",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var path = _currentFile.FullPath;
+            _stlMetadataService.Clean(_currentFile);
+            if (!OpenFile(path, showErrors: false))
+            {
+                SetStatus("STL metadata was cleaned, but the file could not be reloaded.");
+                return;
+            }
+
+            SetStatus("STL metadata cleaned.");
+        }
+        catch (Exception ex) when (ex is IOException
+                                   or UnauthorizedAccessException
+                                   or ArgumentException
+                                   or NotSupportedException
+                                   or System.Security.SecurityException)
+        {
+            SetStatus("Could not clean STL metadata.");
+            MessageBox.Show(this, ex.Message, "Cleaning failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
     private bool OpenFile(string path, bool showErrors = true)
     {
         try
@@ -198,6 +243,9 @@ public partial class MainWindow : Window
             ImageMetadataPanel.Visibility = Visibility.Collapsed;
             ImageMetadataGrid.ItemsSource = null;
             SaveImageMetadataButton.IsEnabled = false;
+            StlMetadataPanel.Visibility = Visibility.Collapsed;
+            StlMetadataGrid.ItemsSource = null;
+            CleanStlMetadataButton.IsEnabled = false;
             FormatText.Text = "Format unavailable";
             EmbeddedMetadataText.Text = "No file information could be read.";
             CreationTimeInput.IsEnabled = false;
@@ -239,6 +287,7 @@ public partial class MainWindow : Window
         };
         CategoryGrid.ItemsSource = _metadataService.ReadCategoryInventory(snapshot);
         ShowImageMetadata(snapshot);
+        ShowStlMetadata(snapshot);
 
         CreationTimeInput.Text = FormatInputTime(snapshot.CreationTime);
         LastAccessTimeInput.Text = FormatInputTime(snapshot.LastAccessTime);
@@ -289,6 +338,48 @@ public partial class MainWindow : Window
                                    or InvalidOperationException)
         {
             ImageMetadataNoticeText.Text = $"Image metadata could not be read: {ex.Message}";
+        }
+    }
+
+    private void ShowStlMetadata(FileMetadataSnapshot snapshot)
+    {
+        StlMetadataGrid.ItemsSource = null;
+        StlMetadataPanel.Visibility = Visibility.Collapsed;
+        CleanStlMetadataButton.IsEnabled = false;
+
+        if (!_stlMetadataService.Supports(snapshot))
+        {
+            return;
+        }
+
+        StlMetadataPanel.Visibility = Visibility.Visible;
+        try
+        {
+            var stl = _stlMetadataService.Read(snapshot.FullPath);
+            var rows = new List<InformationRow>
+            {
+                new("Variant", stl.Variant, "STL"),
+                new("Triangles", stl.TriangleCount.ToString("N0", CultureInfo.CurrentCulture), "STL")
+            };
+            if (stl.Variant == StlMetadataService.BinaryFormat)
+            {
+                rows.Add(new("Header text", stl.HeaderText.Length == 0 ? "(empty)" : stl.HeaderText, "STL header (80 bytes)"));
+            }
+            else
+            {
+                rows.Add(new("Solid names", stl.SolidNames.Count == 0 ? "(empty)" : string.Join("; ", stl.SolidNames), "solid / endsolid lines"));
+            }
+
+            rows.Add(new("Zone.Identifier", stl.HasZoneIdentifier ? "Present (download origin)" : "Not present", "NTFS stream"));
+            StlMetadataGrid.ItemsSource = rows;
+            CleanStlMetadataButton.IsEnabled = true;
+        }
+        catch (Exception ex) when (ex is IOException
+                                   or UnauthorizedAccessException
+                                   or ArgumentException
+                                   or System.Security.SecurityException)
+        {
+            StlMetadataNoticeText.Text = $"STL metadata could not be read: {ex.Message}";
         }
     }
 

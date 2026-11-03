@@ -245,6 +245,52 @@
                     </StackPanel>
                 </Border>
 
+                <Border x:Name="StlMetadataPanel"
+                        Background="White"
+                        CornerRadius="10"
+                        Padding="22"
+                        Margin="0,16,0,0"
+                        BorderBrush="#E4E7EC"
+                        BorderThickness="1"
+                        Visibility="Collapsed">
+                    <StackPanel>
+                        <DockPanel Margin="0,0,0,10">
+                            <Button x:Name="CleanStlMetadataButton"
+                                    Content="Clean all metadata"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="OnCleanStlMetadataClick"
+                                    IsEnabled="False"
+                                    DockPanel.Dock="Right"/>
+                            <TextBlock Text="STL metadata" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
+                        </DockPanel>
+                        <TextBlock x:Name="StlMetadataNoticeText"
+                                   Text="Cleaning empties the binary header or the ASCII solid names, removes the Zone.Identifier download marker, and sets all file times to 2000-01-01 00:00:00. The geometry is not changed."
+                                   Foreground="#667085"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12"/>
+                        <DataGrid x:Name="StlMetadataGrid"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  CanUserResizeRows="False"
+                                  CanUserSortColumns="False"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True"
+                                  RowHeaderWidth="0"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Information" Binding="{Binding Name}" Width="190"/>
+                                <DataGridTextColumn Header="Value" Binding="{Binding Value}" Width="*"
+                                                    ElementStyle="{StaticResource WrappedCellText}"/>
+                                <DataGridTextColumn Header="Source" Binding="{Binding Source}" Width="200"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
                 <Border Background="White" CornerRadius="10" Padding="22" Margin="0,16,0,0" BorderBrush="#E4E7EC" BorderThickness="1">
                     <StackPanel>
                         <TextBlock Text="Metadata inventory" Style="{StaticResource SectionTitle}"/>

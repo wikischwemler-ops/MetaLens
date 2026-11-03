@@ -67,6 +67,7 @@ public sealed class FileMetadataService
         var hasImageMetadataProvider = snapshot.DetectedFormat is
             "JPEG image" or "PNG image" or "TIFF image" or "GIF image";
         var imageExifEditable = snapshot.DetectedFormat is "JPEG image" or "TIFF image";
+        var isStl = snapshot.DetectedFormat is StlMetadataService.BinaryFormat or StlMetadataService.AsciiFormat;
 
         return
         [
@@ -98,7 +99,12 @@ public sealed class FileMetadataService
                 $"Local path: {snapshot.FullPath}; containing folder: {directory}; UNC path: {uncPath}.",
                 "Available",
                 "Moving the file or changing its path is not yet supported."),
-            new(8, "Creator",
+            isStl
+                ? new(8, "Creator",
+                    "STL stores creator, exporter, and model names only in the binary header or in the ASCII 'solid' name; both are listed in the STL metadata panel.",
+                    "STL header inspected",
+                    "Removed by 'Clean all metadata' in the STL metadata panel.")
+                : new(8, "Creator",
                 hasImageMetadataProvider
                     ? "Image EXIF/IPTC/XMP is listed in the image metadata panel when present; other file formats are not inspected."
                     : "Creating user, author, creator, and original source depend on embedded file metadata and are not inspected.",
@@ -128,7 +134,12 @@ public sealed class FileMetadataService
                     : "Copyright, rights holder, license, and contact details depend on embedded file metadata and are not inspected.",
                 hasImageMetadataProvider ? "Image metadata inspected" : "Not inspected",
                 imageExifEditable ? "Copyright EXIF field can be edited for JPEG/TIFF." : "Read-only here; editing requires a supported format provider."),
-            new(13, "Origin",
+            isStl
+                ? new(13, "Origin",
+                    "The Zone.Identifier download marker is listed in the STL metadata panel; other origin data is not inspected.",
+                    "Zone.Identifier inspected",
+                    "The Zone.Identifier stream is removed by 'Clean all metadata'.")
+                : new(13, "Origin",
                 "Download URL, referrer, and origin markings (including Zone.Identifier) are not inspected.",
                 "Not inspected",
                 "Requires stream and format-specific metadata support."),
@@ -300,10 +311,13 @@ public sealed class FileMetadataService
     private static (string Format, string Details) DetectFormat(string path, string extension)
     {
         Span<byte> signature = stackalloc byte[SignatureLength];
+        string? stlFormat;
         using (var stream = new FileStream(path, FileMode.Open, FileAccess.Read, FileShare.ReadWrite | FileShare.Delete))
         {
             var bytesRead = stream.ReadAtLeast(signature, SignatureLength, throwOnEndOfStream: false);
             signature = signature[..bytesRead];
+            stream.Position = 0;
+            stlFormat = StlMetadataService.DetectVariant(stream);
         }
 
         if (signature.StartsWith(new byte[] { 0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A }))
@@ -350,6 +364,13 @@ public sealed class FileMetadataService
         if (signature.StartsWith("ID3"u8))
         {
             return ("MP3 audio", "Recognized from the file signature.");
+        }
+
+        if (stlFormat is not null)
+        {
+            return (stlFormat, stlFormat == StlMetadataService.BinaryFormat
+                ? "Recognized from the file size matching the triangle count in the STL header."
+                : "Recognized from the 'solid' keyword followed by STL facet data.");
         }
 
         var suffix = string.IsNullOrWhiteSpace(extension) ? "no extension" : $"extension {extension}";
