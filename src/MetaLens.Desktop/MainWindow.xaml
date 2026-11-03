@@ -25,6 +25,11 @@
             <Setter Property="Foreground" Value="#667085"/>
             <Setter Property="Margin" Value="0,0,0,6"/>
         </Style>
+        <Style x:Key="WrappedCellText" TargetType="TextBlock">
+            <Setter Property="TextWrapping" Value="Wrap"/>
+            <Setter Property="VerticalAlignment" Value="Top"/>
+            <Setter Property="Margin" Value="3,4"/>
+        </Style>
         <Style TargetType="TextBox">
             <Setter Property="Padding" Value="10,8"/>
             <Setter Property="BorderBrush" Value="#D0D5DD"/>
@@ -86,6 +91,64 @@
 
                 <Border Background="White" CornerRadius="10" Padding="22" Margin="0,16,0,0" BorderBrush="#E4E7EC" BorderThickness="1">
                     <StackPanel>
+                        <TextBlock Text="Edit file-system metadata" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="Edit the enabled fields, then review and confirm before saving. Times use yyyy-MM-dd HH:mm:ss.fffffff in your local time zone."
+                                   Foreground="#667085" FontSize="12" Margin="0,0,0,16"/>
+                        <TextBlock Text="File name (rename in the same folder)" Style="{StaticResource FieldLabel}"/>
+                        <TextBox x:Name="FileNameInput" IsEnabled="False" Margin="0,0,0,16"/>
+                        <Grid>
+                            <Grid.ColumnDefinitions>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                                <ColumnDefinition Width="16"/>
+                                <ColumnDefinition Width="*"/>
+                            </Grid.ColumnDefinitions>
+                            <StackPanel Grid.Column="0">
+                                <TextBlock Text="Created" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="CreationTimeInput" IsEnabled="False"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="2">
+                                <TextBlock Text="Last accessed" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="LastAccessTimeInput" IsEnabled="False"/>
+                            </StackPanel>
+                            <StackPanel Grid.Column="4">
+                                <TextBlock Text="Last modified" Style="{StaticResource FieldLabel}"/>
+                                <TextBox x:Name="LastWriteTimeInput" IsEnabled="False"/>
+                            </StackPanel>
+                        </Grid>
+                        <DockPanel Margin="0,18,0,0">
+                            <StackPanel Orientation="Horizontal" VerticalAlignment="Center">
+                                <CheckBox x:Name="ReadOnlyInput"
+                                          Content="Read-only"
+                                          IsEnabled="False"
+                                          VerticalAlignment="Center"
+                                          Foreground="#344054"
+                                          Margin="0,0,16,0"/>
+                                <CheckBox x:Name="HiddenInput"
+                                          Content="Hidden"
+                                          IsEnabled="False"
+                                          VerticalAlignment="Center"
+                                          Foreground="#344054"
+                                          Margin="0,0,16,0"/>
+                                <CheckBox x:Name="SystemInput"
+                                          Content="System"
+                                          IsEnabled="False"
+                                          VerticalAlignment="Center"
+                                          Foreground="#344054"/>
+                            </StackPanel>
+                            <Button x:Name="SaveButton"
+                                    Content="Review and save"
+                                    Style="{StaticResource PrimaryButton}"
+                                    Click="OnSaveClick"
+                                    IsEnabled="False"
+                                    DockPanel.Dock="Right"/>
+                        </DockPanel>
+                    </StackPanel>
+                </Border>
+
+                <Border Background="White" CornerRadius="10" Padding="22" Margin="0,16,0,0" BorderBrush="#E4E7EC" BorderThickness="1">
+                    <StackPanel>
                         <TextBlock Text="File information" Style="{StaticResource SectionTitle}"/>
                         <TextBlock Text="Values supplied by Windows and the file system. Availability can vary by file system and permissions."
                                    Foreground="#667085" FontSize="12" Margin="0,0,0,15"/>
@@ -121,47 +184,101 @@
                     </StackPanel>
                 </Border>
 
-                <Border Background="White" CornerRadius="10" Padding="22" Margin="0,16,0,10" BorderBrush="#E4E7EC" BorderThickness="1">
+                <Border x:Name="ImageMetadataPanel"
+                        Background="White"
+                        CornerRadius="10"
+                        Padding="22"
+                        Margin="0,16,0,0"
+                        BorderBrush="#E4E7EC"
+                        BorderThickness="1"
+                        Visibility="Collapsed">
                     <StackPanel>
-                        <TextBlock Text="Edit file-system metadata" Style="{StaticResource SectionTitle}"/>
-                        <TextBlock Text="Times use your local time zone (yyyy-MM-dd HH:mm:ss.fffffff). Changes are previewed before they are written."
-                                   Foreground="#667085" FontSize="12" Margin="0,0,0,16"/>
-                        <Grid>
-                            <Grid.ColumnDefinitions>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                                <ColumnDefinition Width="16"/>
-                                <ColumnDefinition Width="*"/>
-                            </Grid.ColumnDefinitions>
-                            <StackPanel Grid.Column="0">
-                                <TextBlock Text="Created" Style="{StaticResource FieldLabel}"/>
-                                <TextBox x:Name="CreationTimeInput" IsEnabled="False"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="2">
-                                <TextBlock Text="Last accessed" Style="{StaticResource FieldLabel}"/>
-                                <TextBox x:Name="LastAccessTimeInput" IsEnabled="False"/>
-                            </StackPanel>
-                            <StackPanel Grid.Column="4">
-                                <TextBlock Text="Last modified" Style="{StaticResource FieldLabel}"/>
-                                <TextBox x:Name="LastWriteTimeInput" IsEnabled="False"/>
-                            </StackPanel>
-                        </Grid>
-                        <DockPanel Margin="0,18,0,0">
-                            <CheckBox x:Name="ReadOnlyInput"
-                                      Content="Read-only attribute"
-                                      IsEnabled="False"
-                                      VerticalAlignment="Center"
-                                      Foreground="#344054"/>
-                            <Button x:Name="SaveButton"
-                                    Content="Review and save"
+                        <DockPanel Margin="0,0,0,10">
+                            <Button x:Name="SaveImageMetadataButton"
+                                    Content="Review and save image metadata"
                                     Style="{StaticResource PrimaryButton}"
-                                    Click="OnSaveClick"
+                                    Click="OnSaveImageMetadataClick"
                                     IsEnabled="False"
                                     DockPanel.Dock="Right"/>
+                            <TextBlock Text="Image metadata" Style="{StaticResource SectionTitle}" VerticalAlignment="Center"/>
                         </DockPanel>
+                        <TextBlock x:Name="ImageMetadataNoticeText"
+                                   Text="Reading supported EXIF, IPTC, and XMP metadata."
+                                   Foreground="#667085"
+                                   FontSize="12"
+                                   TextWrapping="Wrap"
+                                   Margin="0,0,0,12"/>
+                        <DataGrid x:Name="ImageMetadataGrid"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  CanUserResizeRows="False"
+                                  CanUserSortColumns="False"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="False"
+                                  RowHeaderWidth="0"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  MaxHeight="400"
+                                  VerticalScrollBarVisibility="Auto">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="Metadata group" Binding="{Binding Group}" Width="180" IsReadOnly="True"/>
+                                <DataGridTextColumn Header="Field" Binding="{Binding Name}" Width="220" IsReadOnly="True"/>
+                                <DataGridTemplateColumn Header="Value" Width="*">
+                                    <DataGridTemplateColumn.CellTemplate>
+                                        <DataTemplate>
+                                            <TextBlock Text="{Binding Value}" TextWrapping="Wrap" Margin="4"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellTemplate>
+                                    <DataGridTemplateColumn.CellEditingTemplate>
+                                        <DataTemplate>
+                                            <TextBox Text="{Binding Value, UpdateSourceTrigger=PropertyChanged}"
+                                                     IsEnabled="{Binding CanEdit}"
+                                                     MinWidth="180"/>
+                                        </DataTemplate>
+                                    </DataGridTemplateColumn.CellEditingTemplate>
+                                </DataGridTemplateColumn>
+                                <DataGridCheckBoxColumn Header="Editable" Binding="{Binding CanEdit}" Width="75" IsReadOnly="True"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
                     </StackPanel>
                 </Border>
+
+                <Border Background="White" CornerRadius="10" Padding="22" Margin="0,16,0,0" BorderBrush="#E4E7EC" BorderThickness="1">
+                    <StackPanel>
+                        <TextBlock Text="Metadata inventory" Style="{StaticResource SectionTitle}"/>
+                        <TextBlock Text="All 25 categories from the requirements are listed. Values that Windows or the file format does not expose are marked as not inspected. Editing is offered only where the current version can make the change safely."
+                                   Foreground="#667085" FontSize="12" TextWrapping="Wrap" Margin="0,0,0,14"/>
+                        <DataGrid x:Name="CategoryGrid"
+                                  AutoGenerateColumns="False"
+                                  CanUserAddRows="False"
+                                  CanUserDeleteRows="False"
+                                  CanUserReorderColumns="False"
+                                  CanUserResizeRows="False"
+                                  CanUserSortColumns="False"
+                                  HeadersVisibility="Column"
+                                  IsReadOnly="True"
+                                  RowHeaderWidth="0"
+                                  GridLinesVisibility="Horizontal"
+                                  BorderThickness="0"
+                                  Height="560"
+                                  VerticalScrollBarVisibility="Auto">
+                            <DataGrid.Columns>
+                                <DataGridTextColumn Header="#" Binding="{Binding Number}" Width="42"/>
+                                <DataGridTextColumn Header="Category" Binding="{Binding Category}" Width="145"
+                                                    ElementStyle="{StaticResource WrappedCellText}"/>
+                                <DataGridTextColumn Header="Available information" Binding="{Binding AvailableInformation}" Width="2*"
+                                                    ElementStyle="{StaticResource WrappedCellText}"/>
+                                <DataGridTextColumn Header="Inspection" Binding="{Binding InspectionStatus}" Width="170"
+                                                    ElementStyle="{StaticResource WrappedCellText}"/>
+                                <DataGridTextColumn Header="Editing" Binding="{Binding EditingStatus}" Width="220"
+                                                    ElementStyle="{StaticResource WrappedCellText}"/>
+                            </DataGrid.Columns>
+                        </DataGrid>
+                    </StackPanel>
+                </Border>
+
             </StackPanel>
         </ScrollViewer>
 

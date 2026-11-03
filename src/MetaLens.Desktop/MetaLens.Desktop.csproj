@@ -8,6 +8,17 @@
     <ProjectReference Include="..\MetaLens.Core\MetaLens.Core.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Content Include="..\..\tools\ExifTool\exiftool.exe"
+             Link="Tools\ExifTool\exiftool.exe"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+    <Content Include="..\..\tools\ExifTool\exiftool_files\**\*"
+             Link="Tools\ExifTool\exiftool_files\%(RecursiveDir)%(Filename)%(Extension)"
+             CopyToOutputDirectory="PreserveNewest"
+             CopyToPublishDirectory="PreserveNewest" />
+  </ItemGroup>
+
   <PropertyGroup>
     <OutputType>WinExe</OutputType>
     <TargetFramework>net10.0-windows</TargetFramework>
@@ -16,5 +27,12 @@
     <UseWPF>true</UseWPF>
     <ApplicationIcon>Assets\MetaLens.ico</ApplicationIcon>
   </PropertyGroup>
+
+  <Target Name="CopyPublishedExecutableToRepositoryRoot"
+          AfterTargets="Publish"
+          Condition="'$(RuntimeIdentifier)' == 'win-x64' and '$(PublishSingleFile)' == 'true'">
+    <Copy SourceFiles="$(PublishDir)$(AssemblyName).exe"
+          DestinationFiles="$(MSBuildProjectDirectory)\..\..\MetaLens.exe" />
+  </Target>
 
 </Project>

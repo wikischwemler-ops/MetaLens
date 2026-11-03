@@ -5,3 +5,5 @@
 TestResults/
 *.user
 *.suo
+/MetaLens.exe
+/tools/*.tar.gz

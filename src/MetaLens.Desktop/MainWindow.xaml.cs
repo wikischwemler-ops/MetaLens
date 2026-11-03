@@ -1,5 +1,6 @@
 using System.Globalization;
 using System.IO;
+using System.Collections.ObjectModel;
 using System.Windows;
 using System.Windows.Controls;
 using Microsoft.Win32;
@@ -15,7 +16,9 @@ public partial class MainWindow : Window
     ];
 
     private readonly FileMetadataService _metadataService = new();
+    private readonly ImageMetadataService _imageMetadataService = new();
     private FileMetadataSnapshot? _currentFile;
+    private ObservableCollection<ImageMetadataRow> _imageMetadataRows = [];
 
     public MainWindow()
     {
@@ -74,10 +77,13 @@ public partial class MainWindow : Window
         }
 
         var changes = new FileMetadataChanges(
+            FileNameInput.Text,
             creationTime,
             lastAccessTime,
             lastWriteTime,
-            ReadOnlyInput.IsChecked == true);
+            ReadOnlyInput.IsChecked == true,
+            HiddenInput.IsChecked == true,
+            SystemInput.IsChecked == true);
         var summary = BuildChangeSummary(_currentFile, changes);
 
         if (MessageBox.Show(
@@ -92,7 +98,9 @@ public partial class MainWindow : Window
 
         try
         {
-            var path = _currentFile.FullPath;
+            var path = Path.Combine(
+                Path.GetDirectoryName(_currentFile.FullPath)!,
+                changes.FileName);
             _metadataService.Save(_currentFile, changes);
             if (!OpenFile(path, showErrors: false))
             {
@@ -110,6 +118,59 @@ public partial class MainWindow : Window
         {
             SetStatus("Could not save file-system metadata.");
             MessageBox.Show(this, ex.Message, "Save failed", MessageBoxButton.OK, MessageBoxImage.Error);
+        }
+    }
+
+    private void OnSaveImageMetadataClick(object sender, RoutedEventArgs e)
+    {
+        if (_currentFile is null)
+        {
+            return;
+        }
+
+        ImageMetadataGrid.CommitEdit(DataGridEditingUnit.Cell, true);
+        ImageMetadataGrid.CommitEdit(DataGridEditingUnit.Row, true);
+        var changes = _imageMetadataRows.Where(row => row.IsChanged).ToArray();
+        if (changes.Length == 0)
+        {
+            SetStatus("No image metadata values have changed.");
+            return;
+        }
+
+        var summary = string.Join(
+            Environment.NewLine,
+            changes.Select(row => $"{row.Group} / {row.Name}: {row.OriginalValue} → {row.Value}"));
+        if (MessageBox.Show(
+                this,
+                $"Apply these image metadata changes?\n\n{summary}\n\nThe image pixels will not be intentionally edited.",
+                "Review image metadata",
+                MessageBoxButton.YesNo,
+                MessageBoxImage.Question) != MessageBoxResult.Yes)
+        {
+            return;
+        }
+
+        try
+        {
+            var path = _currentFile.FullPath;
+            _imageMetadataService.Save(_currentFile, changes);
+            if (!OpenFile(path, showErrors: false))
+            {
+                SetStatus("Image metadata was saved, but the file could not be reloaded.");
+                return;
+            }
+
+            SetStatus("Image metadata saved.");
+        }
+        catch (Exception ex) when (ex is IOException
+                                   or UnauthorizedAccessException
+                                   or ArgumentException
+                                   or NotSupportedException
+                                   or InvalidOperationException
+                                   or System.Security.SecurityException)
+        {
+            SetStatus("Could not save image metadata.");
+            MessageBox.Show(this, ex.Message, "Image metadata save failed", MessageBoxButton.OK, MessageBoxImage.Error);
         }
     }
 
@@ -133,12 +194,19 @@ public partial class MainWindow : Window
             FileNameText.Text = "Could not open selected file";
             FilePathText.Text = path;
             InformationGrid.ItemsSource = null;
+            CategoryGrid.ItemsSource = null;
+            ImageMetadataPanel.Visibility = Visibility.Collapsed;
+            ImageMetadataGrid.ItemsSource = null;
+            SaveImageMetadataButton.IsEnabled = false;
             FormatText.Text = "Format unavailable";
             EmbeddedMetadataText.Text = "No file information could be read.";
             CreationTimeInput.IsEnabled = false;
             LastAccessTimeInput.IsEnabled = false;
             LastWriteTimeInput.IsEnabled = false;
+            FileNameInput.IsEnabled = false;
             ReadOnlyInput.IsEnabled = false;
+            HiddenInput.IsEnabled = false;
+            SystemInput.IsEnabled = false;
             SaveButton.IsEnabled = false;
             SetStatus("Could not read the selected file.");
             if (showErrors)
@@ -156,7 +224,7 @@ public partial class MainWindow : Window
         FilePathText.Text = snapshot.FullPath;
         FormatText.Text = snapshot.DetectedFormat;
         EmbeddedMetadataText.Text =
-            $"{snapshot.FormatDetectionDetails} Embedded metadata is not interpreted or changed by this version.";
+            $"{snapshot.FormatDetectionDetails} See the image metadata panel for supported image formats.";
 
         InformationGrid.ItemsSource = new[]
         {
@@ -169,16 +237,59 @@ public partial class MainWindow : Window
             new InformationRow("Last modified", FormatTime(snapshot.LastWriteTime), "File system"),
             new InformationRow("Attributes", FormatAttributes(snapshot.Attributes), "Windows")
         };
+        CategoryGrid.ItemsSource = _metadataService.ReadCategoryInventory(snapshot);
+        ShowImageMetadata(snapshot);
 
         CreationTimeInput.Text = FormatInputTime(snapshot.CreationTime);
         LastAccessTimeInput.Text = FormatInputTime(snapshot.LastAccessTime);
         LastWriteTimeInput.Text = FormatInputTime(snapshot.LastWriteTime);
+        FileNameInput.Text = snapshot.FileName;
         ReadOnlyInput.IsChecked = snapshot.IsReadOnly;
+        HiddenInput.IsChecked = snapshot.IsHidden;
+        SystemInput.IsChecked = snapshot.IsSystem;
+        FileNameInput.IsEnabled = true;
         CreationTimeInput.IsEnabled = true;
         LastAccessTimeInput.IsEnabled = true;
         LastWriteTimeInput.IsEnabled = true;
         ReadOnlyInput.IsEnabled = true;
+        HiddenInput.IsEnabled = true;
+        SystemInput.IsEnabled = true;
         SaveButton.IsEnabled = true;
+    }
+
+    private void ShowImageMetadata(FileMetadataSnapshot snapshot)
+    {
+        ImageMetadataGrid.ItemsSource = null;
+        ImageMetadataPanel.Visibility = Visibility.Collapsed;
+        SaveImageMetadataButton.IsEnabled = false;
+        _imageMetadataRows = [];
+
+        if (!_imageMetadataService.Supports(snapshot))
+        {
+            return;
+        }
+
+        ImageMetadataPanel.Visibility = Visibility.Visible;
+        try
+        {
+            _imageMetadataRows = new ObservableCollection<ImageMetadataRow>(
+                _imageMetadataService.Read(snapshot.FullPath));
+            ImageMetadataGrid.ItemsSource = _imageMetadataRows;
+            var editingSupported = _imageMetadataService.SupportsEditing(snapshot);
+            ImageMetadataNoticeText.Text = editingSupported
+                ? "EXIF, IPTC, and XMP entries are listed. JPEG and TIFF support editing selected EXIF, IPTC, and XMP fields; list values use '; ' as a separator. Fields without an enabled editor remain read-only."
+                : "EXIF, IPTC, and XMP entries are listed when present. Embedded metadata editing is currently enabled only for JPEG and TIFF images.";
+            SaveImageMetadataButton.IsEnabled = editingSupported;
+        }
+        catch (Exception ex) when (ex is IOException
+                                   or UnauthorizedAccessException
+                                   or ArgumentException
+                                   or NotSupportedException
+                                   or System.Security.SecurityException
+                                   or InvalidOperationException)
+        {
+            ImageMetadataNoticeText.Text = $"Image metadata could not be read: {ex.Message}";
+        }
     }
 
     private static bool TryParseLocalTime(string value, out DateTime time)
@@ -201,16 +312,28 @@ public partial class MainWindow : Window
     private static string BuildChangeSummary(FileMetadataSnapshot original, FileMetadataChanges changes)
     {
         var entries = new List<string>();
+        if (!string.Equals(original.FileName, changes.FileName, StringComparison.Ordinal))
+        {
+            entries.Add($"File name: {original.FileName} → {changes.FileName}");
+        }
+
         AddTimeChange(entries, "Created", original.CreationTime, changes.CreationTime);
         AddTimeChange(entries, "Last accessed", original.LastAccessTime, changes.LastAccessTime);
         AddTimeChange(entries, "Last modified", original.LastWriteTime, changes.LastWriteTime);
 
-        if (original.IsReadOnly != changes.IsReadOnly)
-        {
-            entries.Add($"Read-only: {original.IsReadOnly} → {changes.IsReadOnly}");
-        }
+        AddAttributeChange(entries, "Read-only", original.IsReadOnly, changes.IsReadOnly);
+        AddAttributeChange(entries, "Hidden", original.IsHidden, changes.IsHidden);
+        AddAttributeChange(entries, "System", original.IsSystem, changes.IsSystem);
 
         return entries.Count == 0 ? "No values have changed." : string.Join(Environment.NewLine, entries);
+    }
+
+    private static void AddAttributeChange(List<string> entries, string label, bool oldValue, bool newValue)
+    {
+        if (oldValue != newValue)
+        {
+            entries.Add($"{label}: {oldValue} → {newValue}");
+        }
     }
 
     private static void AddTimeChange(List<string> entries, string label, DateTime oldValue, DateTime newValue)

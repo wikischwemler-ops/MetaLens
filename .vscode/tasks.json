@@ -10,7 +10,8 @@
                 "--project",
                 "tools\\MetaLens.IconGenerator",
                 "--",
-                "src\\MetaLens.Desktop\\Assets\\MetaLens.ico"
+                "src\\MetaLens.Desktop\\Assets\\MetaLens.ico",
+                "tests\\MetaLens.Core.Tests\\Assets\\ExifFixture.jpg"
             ],
             "problemMatcher": []
         }

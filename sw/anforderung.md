@@ -49,8 +49,14 @@ MetaLens ist ein Dateiinformations-Tool, das Dateien unabhängig von ihrem Forma
 - Native Windows-Desktop-Anwendung mit C# und .NET 10.
 - Beliebige Dateien auswählen oder per Drag-and-drop öffnen und allgemeine Dateisystem-Informationen anzeigen.
 - Typische Dateiformate anhand weniger Bytes ihrer Dateisignatur erkennen; unbekannte Formate als unbekannt kennzeichnen.
-- Erstellungs-, Änderungs- und Zugriffszeitstempel sowie das Nur-Lese-Attribut nach Vorschau und Bestätigung bearbeiten.
-- Dateiinhalt bleibt unverändert. Eingebettete Metadaten werden in dieser Version ausdrücklich noch nicht gelesen oder geändert.
+- Dateiname (Umbenennen im selben Ordner), Erstellungs-, Änderungs- und Zugriffszeitstempel sowie Nur-Lese-, Versteckt- und Systemattribute nach Vorschau und Bestätigung bearbeiten.
+- EXIF/IPTC/XMP-Einträge unterstützter Bilddateien werden angezeigt.
+- Ausgewählte EXIF-, IPTC- und XMP-Felder sind für JPEG/TIFF bearbeitbar. Alle übrigen Bildmetadaten und Formate werden als nicht bearbeitbar ausgewiesen.
+- Eingebettete Metadaten werden mit ExifTool in einer temporären Kopie geändert, erneut gelesen und geprüft; erst danach wird die Quelldatei ersetzt.
+- Eingebettete Metadaten in PDF- und Office-Dateien werden in dieser Version noch nicht unterstützt.
+## Metadatenkatalog
+
+Die Oberfläche listet alle 25 angeforderten Kategorien. Für jedes Feld muss erkennbar sein, ob ein Wert von Windows vorliegt, formatspezifische Unterstützung fehlt, der Wert nur lesbar ist oder eine Bearbeitung angeboten wird. „Nicht geprüft“ darf nicht als „nicht vorhanden“ dargestellt werden. Änderungen an Besitzer, ACL, ADS, eingebetteten Eigenschaften und anwendungsverwalteten IDs benötigen jeweils eine konkrete Implementierung und Berechtigung; Windows-Sicherheitsbeschränkungen werden nicht umgangen.
 
 ## Erfolgskriterien
 

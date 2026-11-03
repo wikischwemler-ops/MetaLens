@@ -7,8 +7,10 @@
 ## Umsetzungsannahmen für Version 0.1
 
 - Ziel ist zunächst Windows als Desktop-Plattform, umgesetzt mit C# und .NET 10.
-- Die erste lauffähige Version unterstützt allgemeine Dateisystem-Informationen für beliebige auswählbare Dateien. Sie kann Zeitstempel und das Nur-Lese-Attribut nach Bestätigung ändern.
+- Die erste lauffähige Version unterstützt allgemeine Dateisystem-Informationen für beliebige auswählbare Dateien. Sie kann die Datei im selben Ordner umbenennen sowie Zeitstempel und Nur-Lese-, Versteckt- und Systemattribute nach Bestätigung ändern.
+- Bei unterstützten Bildern werden EXIF/IPTC/XMP-Einträge ausgelesen. Ausgewählte EXIF-, IPTC- und XMP-Felder können bei JPEG/TIFF mit ExifTool in einer temporären Kopie geändert und verifiziert werden, bevor das Original ersetzt wird.
 - Signaturerkennung dient nur zur Orientierung. Ein Format gilt nicht als inhaltlich unterstützt, solange kein getesteter Metadaten-Provider vorhanden ist. Die erste Version bearbeitet keine eingebetteten Metadaten.
+- Der Metadatenkatalog zeigt alle 25 angefragten Kategorien mit explizitem Erkennungs- und Bearbeitungsstatus. Werte, die noch nicht untersucht werden, werden nicht als fehlend ausgegeben.
 
 ## Leitidee
 

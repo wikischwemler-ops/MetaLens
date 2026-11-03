@@ -37,10 +37,13 @@ public sealed class FileMetadataServiceTests
         using var file = TemporaryFile.Create(".dat", contents);
         var original = _service.Read(file.Path);
         var changes = new FileMetadataChanges(
+            original.FileName,
             original.CreationTime.AddMinutes(-2),
             original.LastAccessTime.AddMinutes(-1),
             original.LastWriteTime.AddMinutes(-3),
-            original.IsReadOnly);
+            original.IsReadOnly,
+            original.IsHidden,
+            original.IsSystem);
 
         _service.Save(original, changes);
 
@@ -57,10 +60,13 @@ public sealed class FileMetadataServiceTests
         File.WriteAllText(file.Path, "changed after inspection");
         var currentContents = File.ReadAllBytes(file.Path);
         var changes = new FileMetadataChanges(
+            original.FileName,
             original.CreationTime,
             original.LastAccessTime,
             original.LastWriteTime,
-            original.IsReadOnly);
+            original.IsReadOnly,
+            original.IsHidden,
+            original.IsSystem);
 
         var exception = Assert.Throws<IOException>(() => _service.Save(original, changes));
 
@@ -76,11 +82,75 @@ public sealed class FileMetadataServiceTests
         Assert.Throws<ArgumentException>(() => _service.Read(directory.Path));
     }
 
+    [Fact]
+    public void ReadCategoryInventory_ListsAllTwentyFiveCategories()
+    {
+        using var file = TemporaryFile.Create(".txt", "metadata inventory"u8.ToArray());
+        var snapshot = _service.Read(file.Path);
+
+        var entries = _service.ReadCategoryInventory(snapshot);
+
+        Assert.Equal(25, entries.Count);
+        Assert.Equal(Enumerable.Range(1, 25), entries.Select(entry => entry.Number));
+        Assert.Contains(entries, entry => entry.Category == "Owner");
+        Assert.Contains(entries, entry => entry.Category == "Permissions");
+        Assert.Contains(entries, entry => entry.Category == "Embedded data");
+        Assert.Contains(entries, entry => entry.Category == "Cache and sidecar files");
+        Assert.Contains(entries, entry => entry.InspectionStatus == "Not inspected");
+    }
+
+    [Fact]
+    public void Save_RenamesFileAndPreservesItsContents()
+    {
+        byte[] contents = [0x11, 0x22, 0x33];
+        using var file = TemporaryFile.Create(".old", contents);
+        var original = _service.Read(file.Path);
+        var newName = $"{Guid.NewGuid():N}.new";
+        var changes = new FileMetadataChanges(
+            newName,
+            original.CreationTime,
+            original.LastAccessTime,
+            original.LastWriteTime,
+            original.IsReadOnly,
+            original.IsHidden,
+            original.IsSystem);
+
+        _service.Save(original, changes);
+
+        var newPath = System.IO.Path.Combine(System.IO.Path.GetDirectoryName(file.Path)!, newName);
+        Assert.False(File.Exists(file.Path));
+        Assert.Equal(contents, File.ReadAllBytes(newPath));
+        file.TrackRenamedPath(newPath);
+    }
+
+    [Fact]
+    public void Save_UpdatesHiddenAndSystemAttributes()
+    {
+        using var file = TemporaryFile.Create(".dat", [0xAB]);
+        var original = _service.Read(file.Path);
+        var changes = new FileMetadataChanges(
+            original.FileName,
+            original.CreationTime,
+            original.LastAccessTime,
+            original.LastWriteTime,
+            original.IsReadOnly,
+            IsHidden: true,
+            IsSystem: true);
+
+        _service.Save(original, changes);
+
+        var attributes = File.GetAttributes(file.Path);
+        Assert.True(attributes.HasFlag(FileAttributes.Hidden));
+        Assert.True(attributes.HasFlag(FileAttributes.System));
+    }
+
     private sealed class TemporaryFile : IDisposable
     {
         private TemporaryFile(string path) => Path = path;
 
-        public string Path { get; }
+        public string Path { get; private set; }
+
+        public void TrackRenamedPath(string path) => Path = path;
 
         public static TemporaryFile Create(string extension, byte[] contents)
         {

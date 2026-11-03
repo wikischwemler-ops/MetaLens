@@ -3,9 +3,9 @@ using System.Windows;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 
-if (args.Length != 1)
+if (args.Length is < 1 or > 2)
 {
-    Console.Error.WriteLine("Usage: MetaLens.IconGenerator <output.ico>");
+    Console.Error.WriteLine("Usage: MetaLens.IconGenerator <output.ico> [jpeg-fixture.jpg]");
     return 1;
 }
 
@@ -82,6 +82,17 @@ writer.Write((ushort)32);
 writer.Write((uint)png.Length);
 writer.Write((uint)22);
 writer.Write(png);
+
+if (args.Length == 2)
+{
+    var jpegPath = Path.GetFullPath(args[1]);
+    Directory.CreateDirectory(Path.GetDirectoryName(jpegPath)!);
+    var jpegEncoder = new JpegBitmapEncoder { QualityLevel = 90 };
+    jpegEncoder.Frames.Add(BitmapFrame.Create(bitmap));
+    using var jpegStream = File.Create(jpegPath);
+    jpegEncoder.Save(jpegStream);
+    Console.WriteLine($"Created {jpegPath}");
+}
 
 Console.WriteLine($"Created {outputPath}");
 return 0;
